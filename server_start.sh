@@ -7,10 +7,11 @@ NAME="Valheim"
 PORT=2456
 WORLD="Valheim"
 PASSWORD=""
+TIMEOUT=30
 
 # Parse arguments
-TEMP=$(getopt -o n:w:p:P: \
---long name:,world:,password:,port: \
+TEMP=$(getopt -o n:w:p:t:P: \
+--long name:,world:,password:,timeout:,port: \
 -- "$@")                                                                
 
 eval set -- "$TEMP"
@@ -24,6 +25,9 @@ while true; do
     ;;
     -p|--port)
       PORT=$2; shift; shift; continue;
+    ;;
+    -t|--timeout)
+      TIMEOUT=$2; shift; shift; continue;
     ;;
     -P|--password)
       PASSWORD="$2"; shift; shift; continue;
@@ -42,10 +46,15 @@ done
 
 echo "Starting server PRESS CTRL-C to exit"
 
+if test $TIMEOUT -gt 0
+then
+  /usr/bin/playercount_poll $(( $PORT + 1 )) $TIMEOUT &
+fi
+
 # Tip: Make a local copy of this script to avoid it being overwritten by steam.
 # NOTE: Minimum password length is 5 characters & Password cant be in the server name.
 # NOTE: You need to make sure the ports 2456-2458 is being forwarded to your server through your local router & firewall.
-if [$PASSWORD == ""] 
+if test $PASSWORD = ""
 then
   ./valheim_server.x86_64 -name $NAME -port $PORT -world $WORLD -savedir /valheim/save
 else
